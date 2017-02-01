@@ -1,0 +1,12 @@
+{
+  "name": "preact-svg-loader",
+  "version": "0.1.0",
+  "description": "Load svg files as preact components.",
+  "main": "src/index.js",
+  "repository": "https://github.com/VuexLtd/preact-svg-loader",
+  "author": "James Birtles <james.birtles@vuex.io>",
+  "license": "MIT",
+  "dependencies": {
+    "htmlparser": "^1.7.7"
+  }
+}
