@@ -97,8 +97,8 @@ module.exports = function(source) {
 import { h } from 'preact';
 
 export default function (props) {
-    const styles = props.styles;
-    const rest = Object.assign({}, props);
+    var styles = props.styles;
+    var rest = Object.assign({}, props);
     delete rest.styles;
 
     return ${svg};
