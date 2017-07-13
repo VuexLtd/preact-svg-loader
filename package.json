@@ -7,14 +7,17 @@
   "author": "James Birtles <james.birtles@vuex.io>",
   "license": "MIT",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "lint": "eslint src test .eslintrc.js --ignore-pattern '!.eslintrc.js'",
+    "pretest": "npm run lint"
   },
   "dependencies": {
-    "htmlparser": "^1.7.7",
-    "loader-utils": "^1.1.0"
+    "loader-utils": "^1.1.0",
+    "htmlparser": "^1.7.7"
   },
   "devDependencies": {
     "chai": "^4.1.0",
+    "eslint": "^4.2.0",
     "mocha": "^3.4.2"
   }
 }

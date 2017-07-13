@@ -1,19 +1,19 @@
 const loaderUtils = require("loader-utils");
 const htmlparser = require("htmlparser");
 const defaultOptions = {
-  cssModules: true,
-  mangleIds: true,
-  idPattern: 'svg-[name]-[sha512:hash:base64:7]',
+    cssModules: true,
+    mangleIds: true,
+    idPattern: 'svg-[name]-[sha512:hash:base64:7]',
 };
 
 
 const getOptions = context => Object.assign({},
-  loaderUtils.getOptions(context),
-  defaultOptions
+    loaderUtils.getOptions(context),
+    defaultOptions
 );
 
 function getIdReplacement(context, options, id) {
-  return loaderUtils.interpolateName(context, options.idPattern, { content: id }).replace(/[^a-zA-Z0-9]/g,'-');
+    return loaderUtils.interpolateName(context, options.idPattern, { content: id }).replace(/[^a-zA-Z0-9]/g,'-');
 }
 
 function assembleNode(context, options, node, root) {
@@ -23,39 +23,39 @@ function assembleNode(context, options, node, root) {
 
     let useAttribs = Object.assign({}, node.attribs || {});
     if (options.mangleIds) {
-      Object.keys(useAttribs).forEach(key => {
+        Object.keys(useAttribs).forEach(key => {
         // id="foo" - mangle "foo"
-        if (key === 'id') {
-          return useAttribs[key] = getIdReplacement(context, options, useAttribs[key]);
-        }
-        // xlink:href="#foo" or anything href="#foo" -> mangle "foo"
-        if (key.toLowerCase().indexOf('href') !== -1) {
-          return useAttribs[key] = useAttribs[key].replace(/^#([\w-]+)/, (_, $1) =>
-            `#${getIdReplacement(context, options, $1)}`
-          );
-        }
-        // all other attributes search for url(#foo) -> mangle "foo"
-        if (typeof useAttribs[key] === 'string') {
-          return useAttribs[key] = useAttribs[key].replace(/url\(#([^\)]+)\)/g, (_, $1) =>
-            `url(#${getIdReplacement(context, options, $1)})`
-          );
-        }
-      })
+            if (key === 'id') {
+                return useAttribs[key] = getIdReplacement(context, options, useAttribs[key]);
+            }
+            // xlink:href="#foo" or anything href="#foo" -> mangle "foo"
+            if (key.toLowerCase().indexOf('href') !== -1) {
+                return useAttribs[key] = useAttribs[key].replace(/^#([\w-]+)/, (_, $1) =>
+                    `#${getIdReplacement(context, options, $1)}`
+                );
+            }
+            // all other attributes search for url(#foo) -> mangle "foo"
+            if (typeof useAttribs[key] === 'string') {
+                return useAttribs[key] = useAttribs[key].replace(/url\(#([^\)]+)\)/g, (_, $1) =>
+                    `url(#${getIdReplacement(context, options, $1)})`
+                );
+            }
+        })
     }
 
     let attribs = JSON.stringify(useAttribs);
 
     if (options.cssModules) {
-      attribs = attribs.replace(/"class":"([^"]*)"/, (_, $1) => {
-        const classes = $1.split(/\s+/).map(className => {
-          if (!className) {
-            return '';
-          }
-          const string = JSON.stringify(className);
-          return `styles && styles[${string}] || ${string}`;
+        attribs = attribs.replace(/"class":"([^"]*)"/, (_, $1) => {
+            const classes = $1.split(/\s+/).map(className => {
+                if (!className) {
+                    return '';
+                }
+                const string = JSON.stringify(className);
+                return `styles && styles[${string}] || ${string}`;
+            });
+            return `"class":[${classes.join(',')}].join(' ')`;
         });
-        return `"class":[${classes.join(',')}].join(' ')`;
-      });
     }
 
     let children = '[]';
@@ -68,17 +68,19 @@ function assembleNode(context, options, node, root) {
     }
 
     if (root) {
-      return `h('${node.name}', Object.assign(${attribs}, rest), ${children})`;
+        return `h('${node.name}', Object.assign(${attribs}, rest), ${children})`;
     }
 
     return `h('${node.name}', ${attribs}, ${children})`
 }
 
-module.exports = function(source, map) {
+module.exports = function(source) {
     if (this.cacheable) this.cacheable();
 
     const options = getOptions(this);
-    const handler = new htmlparser.DefaultHandler(function (error, dom) {});
+    const handler = new htmlparser.DefaultHandler(function (error) {
+        if (error) throw error;
+    });
     const parser = new htmlparser.Parser(handler);
     parser.parseComplete(source);
 
