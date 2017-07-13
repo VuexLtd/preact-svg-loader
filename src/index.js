@@ -24,25 +24,28 @@ function assembleNode(context, options, node, root) {
     let useAttribs = Object.assign({}, node.attribs || {});
     if (options.mangleIds) {
       Object.keys(useAttribs).forEach(key => {
+        // id="foo" - mangle "foo"
         if (key === 'id') {
           return useAttribs[key] = getIdReplacement(context, options, useAttribs[key]);
         }
+        // xlink:href="#foo" or anything href="#foo" -> mangle "foo"
         if (key.toLowerCase().indexOf('href') !== -1) {
-          return useAttribs[key] = useAttribs[key].replace(/^#([a-zA-Z0-9]+)/, (_, $1) =>
-            '#' + getIdReplacement(context, options, $1)
+          return useAttribs[key] = useAttribs[key].replace(/^#([\w-]+)/, (_, $1) =>
+            `#${getIdReplacement(context, options, $1)}`
           );
         }
+        // all other attributes search for url(#foo) -> mangle "foo"
         if (typeof useAttribs[key] === 'string') {
-          return useAttribs[key] = useAttribs[key].replace(/url\(#([^\)]+)\)/, (_, $1) =>
-            'url(#' + getIdReplacement(context, options, $1) + ')'
+          return useAttribs[key] = useAttribs[key].replace(/url\(#([^\)]+)\)/g, (_, $1) =>
+            `url(#${getIdReplacement(context, options, $1)})`
           );
         }
       })
     }
 
     let attribs = JSON.stringify(useAttribs);
-    if (options.cssModules) {
 
+    if (options.cssModules) {
       attribs = attribs.replace(/"class":"([^"]*)"/, (_, $1) => {
         const classes = $1.split(/\s+/).map(className => {
           if (!className) {
