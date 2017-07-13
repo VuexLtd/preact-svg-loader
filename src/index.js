@@ -16,27 +16,25 @@ function getIdReplacement(context, options, id) {
   return loaderUtils.interpolateName(context, options.idPattern, { content: id }).replace(/[^a-zA-Z0-9]/g,'-');
 }
 
-function assembleNode(loaderContext, node, root) {
+function assembleNode(context, options, node, root) {
     if (node.type === 'text') {
         return JSON.stringify(node.data)
     }
-
-    const options = getOptions(loaderContext);
 
     let useAttribs = Object.assign({}, node.attribs || {});
     if (options.mangleIds) {
       Object.keys(useAttribs).forEach(key => {
         if (key === 'id') {
-          return useAttribs[key] = getIdReplacement(loaderContext, options, useAttribs[key]);
+          return useAttribs[key] = getIdReplacement(context, options, useAttribs[key]);
         }
         if (key.toLowerCase().indexOf('href') !== -1) {
           return useAttribs[key] = useAttribs[key].replace(/^#([a-zA-Z0-9]+)/, (_, $1) =>
-            '#' + getIdReplacement(loaderContext, options, $1)
+            '#' + getIdReplacement(context, options, $1)
           );
         }
         if (typeof useAttribs[key] === 'string') {
           return useAttribs[key] = useAttribs[key].replace(/url\(#([^\)]+)\)/, (_, $1) =>
-            'url(#' + getIdReplacement(loaderContext, options, $1) + ')'
+            'url(#' + getIdReplacement(context, options, $1) + ')'
           );
         }
       })
@@ -61,7 +59,7 @@ function assembleNode(loaderContext, node, root) {
     if (node.children) {
         children = '[' +
             node.children
-                .map(childNode => assembleNode(loaderContext, childNode))
+                .map(childNode => assembleNode(context, options, childNode))
                 .join(', ') +
         ']';
     }
@@ -76,6 +74,7 @@ function assembleNode(loaderContext, node, root) {
 module.exports = function(source, map) {
     if (this.cacheable) this.cacheable();
 
+    const options = getOptions(this);
     const handler = new htmlparser.DefaultHandler(function (error, dom) {});
     const parser = new htmlparser.Parser(handler);
     parser.parseComplete(source);
@@ -86,7 +85,7 @@ module.exports = function(source, map) {
         throw new Error('Could not find svg element');
     }
 
-    const svg = assembleNode(this, svgNode, true);
+    const svg = assembleNode(this, options, svgNode, true);
 
     this.callback(null, `
 
