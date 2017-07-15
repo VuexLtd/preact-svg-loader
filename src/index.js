@@ -1,46 +1,56 @@
-const loaderUtils = require("loader-utils");
-const htmlparser = require("htmlparser");
+const loaderUtils = require('loader-utils');
+const htmlparser = require('htmlparser');
 const defaultOptions = {
     cssModules: true,
     mangleIds: true,
     idPattern: 'svg-[name]-[sha512:hash:base64:7]',
 };
 
-
-const getOptions = context => Object.assign({},
-    loaderUtils.getOptions(context),
-    defaultOptions
-);
+const getOptions = context =>
+    Object.assign({}, loaderUtils.getOptions(context), defaultOptions);
 
 function getIdReplacement(context, options, id) {
-    return loaderUtils.interpolateName(context, options.idPattern, { content: id }).replace(/[^a-zA-Z0-9]/g,'-');
+    return loaderUtils
+        .interpolateName(context, options.idPattern, { content: id })
+        .replace(/[^a-zA-Z0-9]/g, '-');
 }
 
 function assembleNode(context, options, node, root) {
     if (node.type === 'text') {
-        return JSON.stringify(node.data)
+        return JSON.stringify(node.data);
     }
 
     let useAttribs = Object.assign({}, node.attribs || {});
     if (options.mangleIds) {
         Object.keys(useAttribs).forEach(key => {
-        // id="foo" - mangle "foo"
+            // id="foo" - mangle "foo"
             if (key === 'id') {
-                return useAttribs[key] = getIdReplacement(context, options, useAttribs[key]);
+                useAttribs[key] = getIdReplacement(
+                    context,
+                    options,
+                    useAttribs[key]
+                );
+                return;
             }
+
             // xlink:href="#foo" or anything href="#foo" -> mangle "foo"
             if (key.toLowerCase().indexOf('href') !== -1) {
-                return useAttribs[key] = useAttribs[key].replace(/^#([\w-]+)/, (_, $1) =>
-                    `#${getIdReplacement(context, options, $1)}`
+                useAttribs[key] = useAttribs[key].replace(
+                    /^#([\w-]+)/,
+                    (_, $1) => `#${getIdReplacement(context, options, $1)}`
                 );
+                return;
             }
+
             // all other attributes search for url(#foo) -> mangle "foo"
             if (typeof useAttribs[key] === 'string') {
-                return useAttribs[key] = useAttribs[key].replace(/url\(#([^\)]+)\)/g, (_, $1) =>
-                    `url(#${getIdReplacement(context, options, $1)})`
+                useAttribs[key] = useAttribs[key].replace(
+                    /url\(#([^\)]+)\)/g,
+                    (_, $1) => `url(#${getIdReplacement(context, options, $1)})`
                 );
+                return;
             }
-        })
+        });
     }
 
     let attribs = JSON.stringify(useAttribs);
@@ -60,31 +70,34 @@ function assembleNode(context, options, node, root) {
 
     let children = '[]';
     if (node.children) {
-        children = '[' +
+        children =
+            '[' +
             node.children
                 .map(childNode => assembleNode(context, options, childNode))
                 .join(', ') +
-        ']';
+            ']';
     }
 
     if (root) {
         return `h('${node.name}', Object.assign(${attribs}, rest), ${children})`;
     }
 
-    return `h('${node.name}', ${attribs}, ${children})`
+    return `h('${node.name}', ${attribs}, ${children})`;
 }
 
 module.exports = function(source) {
     if (this.cacheable) this.cacheable();
 
     const options = getOptions(this);
-    const handler = new htmlparser.DefaultHandler(function (error) {
+    const handler = new htmlparser.DefaultHandler(function(error) {
         if (error) throw error;
     });
     const parser = new htmlparser.Parser(handler);
     parser.parseComplete(source);
 
-    const svgNode = handler.dom.find(node => node.type === 'tag' && node.name === 'svg');
+    const svgNode = handler.dom.find(
+        node => node.type === 'tag' && node.name === 'svg'
+    );
 
     if (!svgNode) {
         throw new Error('Could not find svg element');
@@ -92,7 +105,9 @@ module.exports = function(source) {
 
     const svg = assembleNode(this, options, svgNode, true);
 
-    this.callback(null, `
+    this.callback(
+        null,
+        `
 
 import { h } from 'preact';
 
@@ -104,5 +119,6 @@ export default function (props) {
     return ${svg};
 };
 
-    `);
+        `
+    );
 };
