@@ -1,23 +1,24 @@
 {
-  "name": "preact-svg-loader",
-  "version": "0.1.0",
-  "description": "Load svg files as preact components.",
-  "main": "src/index.js",
-  "repository": "https://github.com/VuexLtd/preact-svg-loader",
-  "author": "James Birtles <james.birtles@vuex.io>",
-  "license": "MIT",
-  "scripts": {
-    "test": "mocha",
-    "lint": "eslint src test .eslintrc.js --ignore-pattern '!.eslintrc.js'",
-    "pretest": "npm run lint"
-  },
-  "dependencies": {
-    "loader-utils": "^1.1.0",
-    "htmlparser": "^1.7.7"
-  },
-  "devDependencies": {
-    "chai": "^4.1.0",
-    "eslint": "^4.2.0",
-    "mocha": "^3.4.2"
-  }
+    "name": "preact-svg-loader",
+    "version": "0.1.0",
+    "description": "Load svg files as preact components.",
+    "main": "src/index.js",
+    "repository": "https://github.com/VuexLtd/preact-svg-loader",
+    "author": "James Birtles <james.birtles@vuex.io>",
+    "license": "MIT",
+    "scripts": {
+        "test": "mocha",
+        "lint": "eslint src test .eslintrc.js --ignore-pattern '!.eslintrc.js'",
+        "pretest": "npm run lint",
+        "prepublishOnly": "npm run test"
+    },
+    "dependencies": {
+        "loader-utils": "^1.1.0",
+        "htmlparser": "^1.7.7"
+    },
+    "devDependencies": {
+        "chai": "^4.1.0",
+        "eslint": "^4.2.0",
+        "mocha": "^3.4.2"
+    }
 }
