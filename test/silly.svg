@@ -1,0 +1,9 @@
+<svg width="100" height="100">
+  <defs>
+    <path id="abcdef" class="def" />
+  </defs>
+  <path xlink:href="#abcdef" class="href" />
+  <path fill="url(#abcdef)" class="fill" />
+  <path fill="#abcdef" class="color fill" />
+  <text class="notfill">We need's to make sure \ that all sorts of funky § gets through? &quot;</text>
+</svg>
