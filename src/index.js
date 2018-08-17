@@ -7,7 +7,7 @@ const defaultOptions = {
 };
 
 const getOptions = context =>
-    Object.assign({}, loaderUtils.getOptions(context), defaultOptions);
+    Object.assign({}, defaultOptions, loaderUtils.getOptions(context));
 
 function getIdReplacement(context, options, id) {
     return loaderUtils
